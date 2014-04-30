@@ -1,0 +1,50 @@
+yum install httpd -y
+yum install php -y
+yum install php-pgsql -y
+yum install php-mbstring -y
+
+
+chkconfig httpd on
+
+service iptables stop
+
+# on the drupal web node
+-A INPUT -m conntrack --ctstate NEW -m tcp -p tcp --dport 80 -j ACCEPT
+-A INPUT -m conntrack --ctstate NEW -m tcp -p tcp --dport 443 -j ACCEPT
+
+openssl genrsa -des3 -out deadsquirrel.org.key 4096 
+# chris
+
+openssl rsa -in deadsquirrel.org.key -out deadsquirrel.org.key.nopass
+openssl req -new -key deadsquirrel.org.key.nopass -out deadsquirrel.org.csr
+openssl x509 -req -days 3650 -in deadsquirrel.org.csr -signkey deadsquirrel.org.key.nopass -out deadsquirrel.org.crt
+
+
+
+# php.ini file
+extension=pdo_pgsql.so
+extension=dom.so
+extension=gd.so
+
+
+cd /var/www/html/blog/sites/default
+mkdir files
+cp default.settings.php settings.php
+chown apache: files
+cp settings.php settings.php.backup
+chown apache: settings.php
+
+# Postgres SQL
+create database deadsquirrel;
+alter database deadsquirrel owner to dead_squirrel_svc;
+
+
+# Drupal management:
+user: Squirrel-Killer
+pass: (standard pass)
+
+# apache log format
+{%Y-%m-%d..%H:%M:%S}%t
+
+
+
